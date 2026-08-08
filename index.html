@@ -92,7 +92,8 @@ canvas.drag{cursor:grabbing}
   <div class="grp">
     <h2>Xuất</h2>
     <div class="row">
-      <button class="wide" id="png">Lưu ảnh PNG 3×</button>
+      <button class="wide" id="pdf">In / xuất PDF</button>
+      <button class="wide" id="png">Ảnh PNG 3×</button>
       <button class="wide" id="rst">Đặt lại</button>
     </div>
   </div>
@@ -288,7 +289,7 @@ function build(kind){
 const cv=document.getElementById("cv"), ctx=cv.getContext("2d");
 let kind="A", S=build("A");
 let yaw=-0.66, pit=0.60, zoom=.72, pan=[0,0], dist=0, focal=1400;
-let expl=0, opac=.35, DPR=1, W=0, H=0, hover=null;
+let expl=0, opac=.35, DPR=1, W=0, H=0, hover=null, light=false;
 
 function fit(){
   DPR=Math.min(devicePixelRatio||1,2);
@@ -314,6 +315,7 @@ function shift(o){
 /* ============ vẽ ============ */
 function render(){
   ctx.clearRect(0,0,W,H);
+  if(light){ ctx.fillStyle="#ffffff"; ctx.fillRect(0,0,W,H); }
   const faces=[];
   for(const o of S.M){
     if(!LON[o.layer]) continue;
@@ -339,14 +341,15 @@ function render(){
     ctx.closePath();
     const gl = f.o===hover;
     if(f.o.layer==="pan"){
-      ctx.fillStyle=tint(col,sh); ctx.globalAlpha=opac*(gl?1.6:1);
+      ctx.fillStyle=light?"#cfe4ef":tint(col,sh); ctx.globalAlpha=(light?opac*.55:opac)*(gl?1.6:1);
       ctx.fill(); ctx.globalAlpha=1;
-      ctx.strokeStyle="rgba(150,215,235,.5)"; ctx.lineWidth=.8; ctx.stroke();
+      ctx.strokeStyle=light?"rgba(40,90,115,.75)":"rgba(150,215,235,.5)"; ctx.lineWidth=.8; ctx.stroke();
     }else if(f.o.layer==="tnk"){
-      ctx.fillStyle=tint(col,sh*.8); ctx.globalAlpha=.62; ctx.fill(); ctx.globalAlpha=1;
+      ctx.fillStyle=light?"#dfe4e9":tint(col,sh*.8); ctx.globalAlpha=light?.85:.62; ctx.fill(); ctx.globalAlpha=1;
     }else{
-      ctx.fillStyle=gl?"#5fd0d8":tint(col,sh); ctx.fill();
-      ctx.strokeStyle=gl?"#bff0f4":"rgba(10,20,32,.72)"; ctx.lineWidth=gl?1.4:.7; ctx.stroke();
+      ctx.fillStyle=gl?"#5fd0d8":tint(col,light?sh*.92:sh); ctx.fill();
+      ctx.strokeStyle=gl?"#bff0f4":(light?"rgba(20,32,44,.95)":"rgba(10,20,32,.72)");
+      ctx.lineWidth=gl?1.4:(light?.85:.7); ctx.stroke();
     }
   }
   if(LON.dim) drawDims();
@@ -364,19 +367,19 @@ function drawDims(){
   for(const d of S.D){
     if(d.txt){
       const p=proj(d.at); if(p[2]<40) continue;
-      ctx.fillStyle="#0b1622cc";
+      ctx.fillStyle=light?"#ffffffe6":"#0b1622cc";
       const w=ctx.measureText(d.txt).width+12;
       ctx.fillRect(p[0]-w/2,p[1]-9,w,18);
-      ctx.strokeStyle="#3d5a76"; ctx.lineWidth=.8; ctx.strokeRect(p[0]-w/2,p[1]-9,w,18);
-      ctx.fillStyle="#e0a33c"; ctx.fillText(d.txt,p[0],p[1]); continue;
+      ctx.strokeStyle=light?"#b98a3f":"#3d5a76"; ctx.lineWidth=.8; ctx.strokeRect(p[0]-w/2,p[1]-9,w,18);
+      ctx.fillStyle=light?"#8a5209":"#e0a33c"; ctx.fillText(d.txt,p[0],p[1]); continue;
     }
     const a=proj(add(d.a,d.o)), b=proj(add(d.b,d.o));
     const ea=proj(d.a), eb=proj(d.b);
     if(a[2]<40||b[2]<40) continue;
-    ctx.strokeStyle="rgba(224,163,60,.34)"; ctx.lineWidth=.8;
+    ctx.strokeStyle=light?"rgba(150,90,10,.45)":"rgba(224,163,60,.34)"; ctx.lineWidth=.8;
     ctx.beginPath(); ctx.moveTo(ea[0],ea[1]); ctx.lineTo(a[0],a[1]);
     ctx.moveTo(eb[0],eb[1]); ctx.lineTo(b[0],b[1]); ctx.stroke();
-    ctx.strokeStyle="#e0a33c"; ctx.lineWidth=1.05;
+    ctx.strokeStyle=light?"#a8620c":"#e0a33c"; ctx.lineWidth=1.05;
     ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke();
     const ang=Math.atan2(b[1]-a[1],b[0]-a[0]);
     for(const [p,s] of [[a,1],[b,-1]]){
@@ -388,8 +391,8 @@ function drawDims(){
     }
     const m=[(a[0]+b[0])/2,(a[1]+b[1])/2];
     const w=ctx.measureText(d.t).width+9;
-    ctx.fillStyle="#0b1622e6"; ctx.fillRect(m[0]-w/2,m[1]-8,w,16);
-    ctx.fillStyle="#f0c274"; ctx.fillText(d.t,m[0],m[1]);
+    ctx.fillStyle=light?"#ffffffee":"#0b1622e6"; ctx.fillRect(m[0]-w/2,m[1]-8,w,16);
+    ctx.fillStyle=light?"#7d4b06":"#f0c274"; ctx.fillText(d.t,m[0],m[1]);
   }
 }
 function drawLabels(){
@@ -408,10 +411,10 @@ function drawLabels(){
     while(used.some(u=>Math.abs(u-y)<15)) y+=15;
     used.push(y);
     const x=q.p[0]+26;
-    ctx.strokeStyle="rgba(95,208,216,.42)"; ctx.lineWidth=.8;
+    ctx.strokeStyle=light?"rgba(12,80,100,.55)":"rgba(95,208,216,.42)"; ctx.lineWidth=.8;
     ctx.beginPath(); ctx.moveTo(q.p[0],q.p[1]); ctx.lineTo(x-4,y); ctx.stroke();
-    ctx.fillStyle="#5fd0d8"; ctx.textAlign="left"; ctx.fillText(q.t,x,y);
-    ctx.fillStyle="#5fd0d8";
+    ctx.fillStyle=light?"#0b5a72":"#5fd0d8"; ctx.textAlign="left"; ctx.fillText(q.t,x,y);
+    ctx.fillStyle=light?"#0b5a72":"#5fd0d8";
     ctx.beginPath(); ctx.arc(q.p[0],q.p[1],2.1,0,7); ctx.fill();
   }
 }
@@ -513,16 +516,114 @@ document.getElementById("rst").onclick=()=>{
   document.getElementById("exp").value=0; document.getElementById("exv").textContent="0 mm";
   document.getElementById("op").value=35; document.getElementById("opv").textContent="35 %";
   render();};
-document.getElementById("png").onclick=()=>{
-  const k=3, ow=cv.width, oh=cv.height, oW=W, oH=H, oD=DPR;
-  DPR=k*(devicePixelRatio||1); cv.width=oW*DPR; cv.height=oH*DPR;
+
+/* ---- chụp ảnh khung nhìn ở độ phân giải cao ---- */
+function grab(scale,onWhite){
+  const ow=cv.width, oh=cv.height, oD=DPR, oL=light;
+  light=!!onWhite;
+  DPR=scale*(devicePixelRatio||1);
+  cv.width=W*DPR; cv.height=H*DPR;
   ctx.setTransform(DPR,0,0,DPR,0,0);
-  ctx.fillStyle="#0b1622"; ctx.fillRect(0,0,oW,oH);
+  ctx.fillStyle=onWhite?"#ffffff":"#0b1622"; ctx.fillRect(0,0,W,H);
   render();
-  const a=document.createElement("a");
-  a.download=`SVWS-OCS-2026_3D_Chup-${kind}.png`; a.href=cv.toDataURL("image/png"); a.click();
-  DPR=oD; cv.width=ow; cv.height=oh; W=oW; H=oH;
+  const url=cv.toDataURL("image/png");
+  light=oL; DPR=oD; cv.width=ow; cv.height=oh;
   ctx.setTransform(DPR,0,0,DPR,0,0); render();
+  return url;
+}
+
+/* ---- in / xuất PDF khổ A3 ngang, có khung tên ---- */
+document.getElementById("pdf").onclick=()=>{
+  const img=grab(3,true);
+  const d=new Date(), pad=n=>String(n).padStart(2,"0");
+  const ngay=`${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
+  const code = kind==="A" ? "BV-3D-A" : "BV-3D-B";
+  const ten  = kind==="A" ? "CHỤP A (V1, V2) — 4.000 × 10.000"
+                          : "CHỤP B (V3) — 2.000 × 3.000";
+  const rows=Object.entries(S.info)
+      .map(([k,v])=>`<tr><td>${k}</td><td class="v">${v}</td></tr>`).join("");
+  const lop=LAYERS.filter(l=>LON[l.id]&&l.id!=="dim"&&l.id!=="lbl")
+      .map(l=>l.n).join(" · ");
+  const w=window.open("","_blank");
+  if(!w){ alert("Trình duyệt đã chặn cửa sổ in. Hãy cho phép pop-up rồi thử lại."); return; }
+  w.document.write(`<!doctype html><meta charset="utf-8">
+<title>${code} — Mô hình 3D khung thu gom khí</title>
+<style>
+@page{size:A3 landscape;margin:8mm}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Inter","Segoe UI",Arial,sans-serif;color:#14161a;background:#e9edf1}
+.sheet{width:404mm;height:281mm;background:#fff;margin:10px auto;padding:5mm;
+  border:.6mm solid #14161a;display:flex;flex-direction:column}
+.hd{display:flex;justify-content:space-between;align-items:baseline;
+  border-bottom:.35mm solid #14161a;padding-bottom:2mm;margin-bottom:3mm}
+.hd h1{font-size:15pt;font-weight:600}
+.hd .r{font-family:ui-monospace,Consolas,monospace;font-size:8.5pt;color:#4a4f57}
+.body{flex:1;display:flex;gap:4mm;min-height:0}
+.img{flex:1;border:.25mm solid #c8ccd2;display:flex;align-items:center;justify-content:center;
+  overflow:hidden;background:#fff}
+.img img{max-width:100%;max-height:100%;object-fit:contain}
+.info{width:62mm;flex:none;font-size:8pt}
+.info h2{font-family:ui-monospace,Consolas,monospace;font-size:7.5pt;letter-spacing:.12em;
+  text-transform:uppercase;color:#8a8f98;border-bottom:.25mm solid #14161a;
+  padding-bottom:1mm;margin:0 0 2mm}
+.info table{width:100%;border-collapse:collapse;margin-bottom:4mm}
+.info td{border-bottom:.2mm solid #dfe3e8;padding:1.1mm 0;vertical-align:top}
+.info td.v{text-align:right;font-family:ui-monospace,Consolas,monospace;font-weight:500}
+.info p{line-height:1.5;color:#4a4f57;margin-bottom:2mm}
+.tb{display:grid;grid-template-columns:1fr 62mm;border:.5mm solid #14161a;margin-top:3mm;
+  font-size:7.5pt}
+.tb>div{padding:1.6mm 2.2mm}
+.tb>div:first-child{border-right:.25mm solid #c8ccd2}
+.tb .l{display:block;font-size:6pt;letter-spacing:.1em;color:#8a8f98;text-transform:uppercase}
+.tb .b{font-family:ui-monospace,Consolas,monospace;font-size:9pt}
+.tb .code{font-size:15pt;font-weight:600;font-family:ui-monospace,Consolas,monospace;
+  text-align:right;display:block;margin-top:1mm}
+.warn{border-left:.7mm solid #b3520d;background:#fdf6ef;padding:1.8mm 2.4mm;font-size:7.5pt;
+  line-height:1.45}
+@media print{body{background:#fff}.sheet{margin:0;border:none;width:auto;height:auto}}
+</style>
+<div class="sheet">
+  <div class="hd">
+    <h1>${code} · Mô hình 3D khung thu gom khí — ${ten}</h1>
+    <div class="r">SVWS-OCS-2026 · Rev. A · Kích thước: mm</div>
+  </div>
+  <div class="body">
+    <div class="img"><img src="${img}"></div>
+    <div class="info">
+      <h2>Thông số</h2>
+      <table>${rows}</table>
+      <h2>Lớp hiển thị</h2>
+      <p>${lop}</p>
+      <h2>Ghi chú</h2>
+      <p>Hình chiếu trục đo lấy từ mô hình 3D, không theo tỷ lệ. Kích thước thi công
+      lấy theo bộ bản vẽ 2D BV-01 ÷ BV-07.</p>
+      <p>Toàn bộ thép hộp SUS304. Bản đế, thanh kẹp gioăng chân và máng ngưng SUS316L.
+      Tấm phủ Polycarbonate đặc 5 mm.</p>
+      <div class="warn"><b>Chưa duyệt thi công.</b> Còn 3 giả thiết cần xác nhận:
+      công suất máy thổi khí, bề rộng thành bể, chiều cao lớp bọt.</div>
+    </div>
+  </div>
+  <div class="tb">
+    <div>
+      <span class="l">Công ty TNHH GPKT Sóng Việt — SVWS</span>
+      <span class="b">Hệ thu gom khí mùi — 03 bể sục khí có chụp kín</span>
+    </div>
+    <div>
+      <span class="l">Ngày in ${ngay}</span>
+      <span class="code">${code}</span>
+    </div>
+  </div>
+</div>`);
+  w.document.close();
+  const go=()=>{w.focus();w.print();};
+  const im=w.document.querySelector("img");
+  if(im && !im.complete) im.onload=()=>setTimeout(go,120); else setTimeout(go,300);
+};
+
+document.getElementById("png").onclick=()=>{
+  const a=document.createElement("a");
+  a.download=`SVWS-OCS-2026_3D_Chup-${kind}.png`;
+  a.href=grab(3,false); a.click();
 };
 function stats(){
   document.getElementById("stat").innerHTML =
