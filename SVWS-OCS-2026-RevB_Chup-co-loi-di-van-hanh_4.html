@@ -1,0 +1,813 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>SVWS-OCS-2026 Rev.B · Chụp thu gom khí có lối đi vận hành</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{
+  --bg:#0b1622; --panel:#132436; --ink:#dce8f2; --ink2:#8fa6bd; --ink3:#5d7690;
+  --amber:#e0a33c; --cyan:#5fd0d8;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  --sans:"Inter","Segoe UI",system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans);overflow:hidden}
+#app{display:flex;height:100%}
+#side{width:290px;flex:none;background:var(--panel);border-right:1px solid #1d3348;
+  display:flex;flex-direction:column;overflow-y:auto}
+#head{padding:14px 15px 12px;border-bottom:1px solid #1d3348}
+#head .k{font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--ink3)}
+#head h1{font-size:15px;font-weight:600;margin-top:5px;line-height:1.3}
+#head .s{font-family:var(--mono);font-size:10.5px;color:var(--ink2);margin-top:5px}
+.grp{padding:12px 15px;border-bottom:1px solid #1d3348}
+.grp h2{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:var(--ink3);
+  text-transform:uppercase;margin-bottom:9px}
+.row{display:flex;gap:6px;flex-wrap:wrap}
+button{font-family:var(--mono);font-size:11px;background:#17293c;color:var(--ink2);
+  border:1px solid #24405a;border-radius:3px;padding:5px 9px;cursor:pointer;transition:.12s}
+button:hover{background:#1e3450;color:var(--ink)}
+button.on{background:#1d4a5c;color:#bff0f4;border-color:#2f7c8c}
+button.wide{flex:1;text-align:center}
+.fld{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.fld span{font-family:var(--mono);font-size:11px;color:var(--ink2);width:78px;flex:none}
+.fld input,.fld select{flex:1;min-width:0;background:#0e1c2b;color:var(--ink);
+  border:1px solid #24405a;border-radius:3px;padding:4px 6px;font-family:var(--mono);font-size:11.5px}
+.fld em{font-family:var(--mono);font-size:10px;color:var(--ink3);font-style:normal;width:24px;
+  text-align:right;flex:none}
+label.ck{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;
+  color:var(--ink2);padding:3.5px 0;cursor:pointer;user-select:none}
+label.ck input{accent-color:#3f8fa8;width:13px;height:13px}
+label.ck .sw{width:11px;height:11px;border-radius:2px;flex:none;border:1px solid #2b4964}
+input[type=range]{width:100%;accent-color:#3f8fa8;margin-top:3px}
+.val{font-family:var(--mono);font-size:10px;color:var(--ink3);float:right}
+#warn{margin-top:9px;font-family:var(--mono);font-size:10.5px;line-height:1.55;
+  border-left:2px solid #c96a3a;background:#2a1d16;color:#e8b48c;padding:6px 8px;border-radius:2px}
+#warn.ok{border-left-color:#3f8f6a;background:#152a22;color:#8fd8b4}
+#warn b{color:#fff}
+#stat{padding:12px 15px;font-family:var(--mono);font-size:10.5px;color:var(--ink2);line-height:1.7}
+#stat table{width:100%;border-collapse:collapse}
+#stat td{padding:2px 0;vertical-align:top}
+#stat td.v{text-align:right;color:var(--ink)}
+#stat h3{font-size:9.5px;letter-spacing:.12em;color:var(--ink3);text-transform:uppercase;
+  margin:10px 0 5px;border-bottom:1px solid #1d3348;padding-bottom:3px}
+#view{flex:1;position:relative;background:radial-gradient(ellipse at 50% 38%,#12283c 0%,#0a1420 72%)}
+canvas{display:block;width:100%;height:100%;cursor:grab}
+canvas.drag{cursor:grabbing}
+#hint{position:absolute;left:16px;bottom:14px;font-family:var(--mono);font-size:10.5px;
+  color:#4f6b85;line-height:1.7;pointer-events:none}
+#tag{position:absolute;right:16px;top:14px;font-family:var(--mono);font-size:10.5px;
+  color:#4f6b85;text-align:right;line-height:1.7;pointer-events:none}
+#pick{position:absolute;left:50%;transform:translateX(-50%);bottom:14px;font-family:var(--mono);
+  font-size:11px;color:var(--cyan);background:#0e2233cc;border:1px solid #235068;
+  padding:5px 12px;border-radius:3px;opacity:0;transition:.15s;pointer-events:none}
+@media(max-width:860px){#app{flex-direction:column}#side{width:100%;max-height:47%}}
+</style>
+
+<div id="app">
+<div id="side">
+  <div id="head">
+    <div class="k">SVWS-OCS-2026 · REV. B</div>
+    <h1>Chụp thu gom khí<br>có lối đi vận hành</h1>
+    <div class="s" id="mmtag">4.000 × 10.000 · lối đi 1.000</div>
+  </div>
+
+  <div class="grp">
+    <h2>Bể và lối đi</h2>
+    <div class="fld"><span>Bể dài</span><input id="iL" type="number" step="100" value="10000"><em>mm</em></div>
+    <div class="fld"><span>Bể rộng</span><input id="iW" type="number" step="100" value="4000"><em>mm</em></div>
+    <div class="fld"><span>Thành bể</span><input id="iT" type="number" step="10" value="200"><em>mm</em></div>
+    <div class="fld"><span>Lối đi rộng</span><input id="iWW" type="number" step="50" value="1000"><em>mm</em></div>
+    <div class="fld"><span>Lối đi dài</span><input id="iWL" type="number" step="100" value="5100"><em>mm</em></div>
+    <div class="fld"><span>Lệch tâm</span><input id="iWO" type="number" step="50" value="0"><em>mm</em></div>
+  </div>
+
+  <div class="grp">
+    <h2>Chụp</h2>
+    <div class="fld"><span>Cao mép trên</span><input id="iZ0" type="number" step="10" value="1340"><em>mm</em></div>
+    <div class="fld"><span>Cao mép dưới</span><input id="iZ1" type="number" step="10" value="1000"><em>mm</em></div>
+  </div>
+
+  <div class="grp">
+    <h2>Nắp lối đi</h2>
+    <div class="fld"><span>Kiểu nắp</span>
+      <select id="iLid">
+        <option value="hinge" selected>Bản lề mở lên (ty hơi)</option>
+        <option value="slide">Trượt xếp chồng nhiều tầng</option>
+        <option value="lift">Tháo rời từng tấm</option>
+      </select></div>
+    <div class="fld"><span>Số tấm</span><input id="iN" type="number" min="2" max="10" step="1" value="4"></div>
+    <h2 style="margin-top:12px">Độ mở <span class="val" id="opv">0 %</span></h2>
+    <input type="range" id="iOpen" min="0" max="100" value="0">
+    <div class="fld" style="margin-top:8px"><span>Chế độ mở</span>
+      <select id="iMode">
+        <option value="all" selected>Mở tất cả các tấm</option>
+        <option value="seq">Mở lần lượt (so le)</option>
+        <option value="one">Chỉ 1 tấm (thực tế vận hành)</option>
+        <option value="pick">Chọn từng tấm</option>
+      </select></div>
+    <div id="lidPick" style="display:none;margin-top:2px"></div>
+    <label class="ck"><input type="checkbox" id="iSlot" checked>
+      <span>Khe hút cục bộ dọc mép lối đi</span></label>
+    <div id="warn"></div>
+  </div>
+
+  <div class="grp">
+    <h2>Góc nhìn</h2>
+    <div class="row">
+      <button class="wide" data-v="iso">Trục đo</button>
+      <button class="wide" data-v="front">Đứng</button>
+      <button class="wide" data-v="side">Cạnh</button>
+      <button class="wide" data-v="top">Bằng</button>
+    </div>
+  </div>
+
+  <div class="grp">
+    <h2>Lớp hiển thị</h2>
+    <div id="layers"></div>
+  </div>
+
+  <div class="grp">
+    <h2>Tách rời <span class="val" id="exv">0 mm</span></h2>
+    <input type="range" id="iExp" min="0" max="1400" value="0" step="10">
+    <h2 style="margin-top:12px">Độ trong tấm <span class="val" id="tpv">30 %</span></h2>
+    <input type="range" id="iOp" min="0" max="100" value="30">
+  </div>
+
+  <div class="grp">
+    <h2>Xuất</h2>
+    <div class="row">
+      <button class="wide" id="bPdf">In / xuất PDF</button>
+      <button class="wide" id="bPng">Ảnh PNG 3×</button>
+    </div>
+    <div class="row" style="margin-top:6px">
+      <button class="wide" id="bRst">Đặt lại góc nhìn</button>
+    </div>
+  </div>
+
+  <div id="stat"></div>
+</div>
+
+<div id="view">
+  <canvas id="cv"></canvas>
+  <div id="tag"></div>
+  <div id="hint">Kéo trái · xoay &nbsp;|&nbsp; Kéo phải · dời &nbsp;|&nbsp; Lăn chuột · phóng<br>Bấm vào cấu kiện để xem quy cách</div>
+  <div id="pick"></div>
+</div>
+</div>
+
+<script>
+"use strict";
+const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]];
+const add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]];
+const mul=(a,s)=>[a[0]*s,a[1]*s,a[2]*s];
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const crs=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const len=a=>Math.hypot(a[0],a[1],a[2]);
+const nrm=a=>{const l=len(a)||1;return[a[0]/l,a[1]/l,a[2]/l]};
+const f1=n=>n.toLocaleString('vi',{minimumFractionDigits:1,maximumFractionDigits:1});
+const f0=n=>Math.round(n).toLocaleString('vi');
+const $=id=>document.getElementById(id);
+
+const LAYERS=[
+ {id:"col", n:"Cột",                  c:"#c3ccd4", on:1},
+ {id:"bem", n:"Dầm biên dọc",         c:"#a6b6c6", on:1},
+ {id:"raf", n:"Dầm mái",              c:"#cfd9e3", on:1},
+ {id:"pur", n:"Nẹp đỡ tấm",           c:"#8fa2b4", on:1},
+ {id:"part",n:"Vách ngăn lối đi",     c:"#9ec3d4", on:1},
+ {id:"lid", n:"Nắp lối đi",           c:"#7fd4e8", on:1},
+ {id:"lidf",n:"Khung nắp + bản lề",   c:"#e0a33c", on:1},
+ {id:"pan", n:"Tấm phủ PC",           c:"#7fd4e8", on:1},
+ {id:"acc", n:"Nắp thăm, xả áp, hút", c:"#e0a33c", on:1},
+ {id:"slot",n:"Khe hút cục bộ",       c:"#d0714a", on:1},
+ {id:"walk",n:"Lối đi bê tông",       c:"#8a8f98", on:1},
+ {id:"man", n:"Người vận hành",       c:"#4fa88a", on:1},
+ {id:"tnk", n:"Thành bể",             c:"#43566a", on:1},
+ {id:"dim", n:"Kích thước",           c:"#e0a33c", on:1},
+ {id:"lbl", n:"Nhãn cấu kiện",        c:"#5fd0d8", on:0},
+];
+const LON={}; LAYERS.forEach(l=>LON[l.id]=!!l.on);
+const LEV={tnk:-1,walk:-1,col:0,bem:1,part:1,raf:2,pur:3,pan:4,lid:5,lidf:5,acc:5,slot:2};
+
+function mkMember(p0,p1,w,h,layer,name,spec){
+  const d=sub(p1,p0), L=len(d); if(L<1e-6)return null;
+  const dir=mul(d,1/L);
+  let up=[0,0,1]; if(Math.abs(dot(dir,up))>0.995) up=[0,1,0];
+  const r=nrm(crs(dir,up)), u=nrm(crs(r,dir));
+  const V=[];
+  for(const s of [0,1]){
+    const b=s?p1:p0;
+    for(const [a,c] of [[-1,-1],[1,-1],[1,1],[-1,1]])
+      V.push(add(add(b,mul(r,a*w/2)),mul(u,c*h/2)));
+  }
+  return {V,F:[[3,2,1,0],[4,5,6,7],[0,1,5,4],[1,2,6,5],[2,3,7,6],[3,0,4,7]],
+    layer,name,spec,ctr:mul(add(p0,p1),0.5)};
+}
+function mkQuad(pts,layer,name,spec){
+  return {V:pts,F:[[0,1,2,3]],layer,name,spec,
+    ctr:mul(pts.reduce((a,b)=>add(a,b),[0,0,0]),0.25)};
+}
+function mkBox(c,sx,sy,sz,layer,name,spec){
+  const V=[];
+  for(const z of [-sz/2,sz/2]) for(const [a,b] of [[-1,-1],[1,-1],[1,1],[-1,1]])
+    V.push([c[0]+a*sx/2,c[1]+b*sy/2,c[2]+z]);
+  return {V,F:[[3,2,1,0],[4,5,6,7],[0,1,5,4],[1,2,6,5],[2,3,7,6],[3,0,4,7]],layer,name,spec,ctr:c};
+}
+function mkTube(c,r,h,ax,seg,layer,name,spec){
+  const V=[],F=[];
+  for(const t of [0,1]) for(let i=0;i<seg;i++){
+    const a=i/seg*Math.PI*2,u=r*Math.cos(a),v=r*Math.sin(a),w=(t-0.5)*h;
+    V.push(ax===0?[c[0]+w,c[1]+u,c[2]+v]:ax===1?[c[0]+u,c[1]+w,c[2]+v]:[c[0]+u,c[1]+v,c[2]+w]);
+  }
+  for(let i=0;i<seg;i++){const j=(i+1)%seg;F.push([i,j,seg+j,seg+i]);}
+  F.push([...Array(seg).keys()].reverse());
+  F.push([...Array(seg).keys()].map(i=>seg+i));
+  return {V,F,layer,name,spec,ctr:c};
+}
+/* quay quanh trục X tại (yH,zH) — dùng cho nắp bản lề */
+function rotX(o,yH,zH,a){
+  const ca=Math.cos(a),sa=Math.sin(a);
+  const V=o.V.map(([x,y,z])=>{
+    const dy=y-yH,dz=z-zH;
+    return [x, yH+dy*ca-dz*sa, zH+dy*sa+dz*ca];
+  });
+  const c=V.reduce((p,q)=>add(p,q),[0,0,0]);
+  return {...o,V,ctr:mul(c,1/V.length)};
+}
+function movX(o,dx){
+  return {...o,V:o.V.map(([x,y,z])=>[x+dx,y,z]),ctr:[o.ctr[0]+dx,o.ctr[1],o.ctr[2]]};
+}
+
+let P={L:10000,W:4000,T:200,WW:1000,WL:5100,WO:0,Z0:1340,Z1:1000,
+       lid:"hinge",N:4,open:0,mode:"all",pick:{},slot:true};
+
+function build(){
+  const T=P.T, h=T/2;
+  const LX=P.L+T, LY=P.W+T;                 // trục cột
+  const Z0=P.Z0, Z1=P.Z1;
+  const zAt=y=>Z0+(Z1-Z0)*y/LY;
+  const Yw0=Math.max(h+300, LY/2+P.WO-P.WW/2), Yw1=Math.min(LY-h-300, Yw0+P.WW);
+  const WL=Math.min(P.WL, LX);
+  const cw=50, rw=40, rh=40;                // cột 50×50 · dầm mái 40×40
+  const M=[], D=[];
+  const push=o=>{if(o)M.push(o)};
+  const colX=[0,LX*0.2,LX*0.4,LX*0.6,LX*0.8,LX];
+  const nRaf=Math.max(2,Math.round(LX/850));
+  const rafX=Array.from({length:nRaf+1},(_,i)=>i*LX/nRaf);
+  const stepX=LX/nRaf;
+
+  /* ---- thành bể + mặt nước + lối đi ---- */
+  [[-T,-T,LX+2*T,T],[-T,LY,LX+2*T,T],[-T,0,T,LY],[LX,0,T,LY]].forEach(([x,y,w,d])=>
+    push(mkBox([x+w/2,y+d/2,-140],w,d,120,"tnk","Thành bể BTCT",`Rộng ${T} mm`)));
+  push(mkQuad([[h,h,-420],[LX-h,h,-420],[LX-h,LY-h,-420],[h,LY-h,-420]],
+    "tnk","Mặt nước","Cao độ −420 so với mặt thành"));
+  push(mkBox([WL/2,(Yw0+Yw1)/2,-90],WL,P.WW,60,"walk","Lối đi bê tông hiện hữu",
+    `Rộng ${f0(P.WW)} × dài ${f0(WL)} mm · mặt bằng cao độ ±0,00`));
+
+  /* ---- cột ---- */
+  const yLines=[0,Yw0,Yw1,LY];
+  yLines.forEach((y,iy)=>colX.forEach(x=>{
+    const H=zAt(y);
+    push(mkMember([x,y,0],[x,y,H],cw,cw,"col",
+      `Cột ${cw}×${cw}×2,0 — trục Y=${f0(y)}`,`Cao ${f0(H)} mm · bản đế 150×150×5`));
+    push(mkBox([x,y,-14],150,150,28,"col","Bản đế 150×150×5 SUS316L","4 bulong nở M10×100"));
+  }));
+
+  /* ---- dầm biên dọc trên 4 trục Y ---- */
+  yLines.forEach(y=>push(mkMember([0,y,zAt(y)+25],[LX,y,zAt(y)+25],cw,cw,"bem",
+    `Dầm biên dọc ${cw}×${cw}×2,0 — trục Y=${f0(y)}`,`Dài ${f0(LX)} mm · nối tại trục cột`)));
+
+  /* ---- dầm mái 3 khoang ---- */
+  const zoneRaf=(x,ya,yb,tag)=>{
+    const L=Math.hypot(yb-ya,zAt(yb)-zAt(ya));
+    return mkMember([x,ya,zAt(ya)+70],[x,yb,zAt(yb)+70],rw,rh,"raf",
+      `Dầm mái ${rw}×${rh}×2,0 — ${tag}`,`Nhịp ${f0(L)} mm · @${f0(stepX)}`);
+  };
+  rafX.forEach(x=>{
+    push(zoneRaf(x,0,Yw0,"khoang trái"));
+    push(zoneRaf(x,Yw1,LY,"khoang phải"));
+    if(x>=WL-1) push(zoneRaf(x,Yw0,Yw1,"khoang giữa cố định"));
+  });
+  /* nẹp giữa khoang trái/phải */
+  [[0,Yw0],[Yw1,LY]].forEach(([ya,yb],i)=>{
+    const ym=(ya+yb)/2;
+    push(mkMember([0,ym,zAt(ym)+108],[LX,ym,zAt(ym)+108],30,30,"pur",
+      `Nẹp đỡ tấm 30×30×1,5 — khoang ${i?"phải":"trái"}`,`Trục Y=${f0(ym)}`));
+  });
+
+  /* ---- tấm phủ mái + vách bao ---- */
+  const rz=y=>zAt(y)+122;
+  push(mkQuad([[0,0,rz(0)],[LX,0,rz(0)],[LX,Yw0,rz(Yw0)],[0,Yw0,rz(Yw0)]],
+    "pan","Tấm mái PC đặc 5 mm — khoang trái",`${f0(LX)} × ${f0(Yw0)} mm`));
+  push(mkQuad([[0,Yw1,rz(Yw1)],[LX,Yw1,rz(Yw1)],[LX,LY,rz(LY)],[0,LY,rz(LY)]],
+    "pan","Tấm mái PC đặc 5 mm — khoang phải",`${f0(LX)} × ${f0(LY-Yw1)} mm`));
+  if(WL<LX-1) push(mkQuad([[WL,Yw0,rz(Yw0)],[LX,Yw0,rz(Yw0)],[LX,Yw1,rz(Yw1)],[WL,Yw1,rz(Yw1)]],
+    "pan","Tấm mái PC — khoang giữa cố định",`${f0(LX-WL)} × ${f0(P.WW)} mm`));
+  [0,LY].forEach(y=>push(mkQuad([[0,y,0],[LX,y,0],[LX,y,rz(y)],[0,y,rz(y)]],
+    "pan","Vách bao PC đặc 5 mm — cạnh dài",`Cao ${f0(zAt(y))} mm`)));
+  [0,LX].forEach(x=>push(mkQuad([[x,0,0],[x,LY,0],[x,LY,rz(LY)],[x,0,rz(0)]],
+    "pan","Vách bao PC đặc 5 mm — cạnh hồi","Cắt vát theo dốc mái")));
+
+  /* ---- vách ngăn lối đi (2 vách trong) ---- */
+  [Yw0,Yw1].forEach((y,i)=>{
+    push(mkQuad([[0,y,0],[LX,y,0],[LX,y,rz(y)],[0,y,rz(y)]],"part",
+      `Vách ngăn lối đi PC 5 mm — trục Y=${f0(y)}`,
+      `Cao ${f0(zAt(y))} mm · vừa ngăn khí vừa làm lan can lối đi`));
+    push(mkMember([0,y,zAt(y)+56],[LX,y,zAt(y)+56],40,40,"bem",
+      `Ray đỡ nắp 40×40×2,0 — trục Y=${f0(y)}`,
+      i?`Mép tựa + chốt gài nắp`:`Mép bản lề nắp`));
+  });
+
+  /* ---- nắp lối đi ---- */
+  const n=Math.max(2,P.N), dx=WL/n, ang=P.open/100*Math.PI*0.47;
+  const fac=i=>{
+    if(P.mode==="one")  return i===0?1:0;
+    if(P.mode==="pick") return P.pick[i]===false?0:1;
+    if(P.mode==="seq")  return Math.max(0,1-i*0.24);
+    return 1;
+  };
+  const lidZ0=zAt(Yw0)+95, lidZ1=zAt(Yw1)+95;
+  const lids=[];
+  for(let i=0;i<n;i++){
+    const x0=i*dx, x1=x0+dx, k=fac(i), act=k>0.01;
+    const a=ang*k, sh=P.open/100*dx*i*k;
+    const nm=`Nắp lối đi N${i+1}`;
+    const sp=`${f0(dx)} × ${f0(P.WW)} mm · khung 30×30 + PC 5 mm · ≈${f1(2*(dx+P.WW)/1000*1.32+dx*P.WW/1e6*6)} kg`;
+    const parts=[];
+    parts.push(mkQuad([[x0,Yw0,lidZ0],[x1,Yw0,lidZ0],[x1,Yw1,lidZ1],[x0,Yw1,lidZ1]],"lid",nm,sp));
+    [[x0,x0],[x1,x1]].forEach(([xa,xb])=>parts.push(
+      mkMember([xa,Yw0,lidZ0],[xb,Yw1,lidZ1],30,30,"lidf",`Khung nắp N${i+1} — 30×30×1,5`,"Cạnh ngang")));
+    [[Yw0,lidZ0],[Yw1,lidZ1]].forEach(([y,z])=>parts.push(
+      mkMember([x0,y,z],[x1,y,z],30,30,"lidf",`Khung nắp N${i+1} — 30×30×1,5`,"Cạnh dọc")));
+    if(P.lid==="hinge"){
+      [x0+dx*0.22,x0+dx*0.78].forEach(xh=>parts.push(
+        mkBox([xh,Yw0,lidZ0-16],90,42,26,"lidf",`Bản lề inox N${i+1}`,"Bản lề nâng, tháo chốt được")));
+      [x0+dx*0.22,x0+dx*0.78].forEach(xh=>parts.push(
+        mkBox([xh,Yw1,lidZ1+2],60,34,22,"lidf",`Chốt gài nhanh N${i+1}`,"Toggle latch · ép gioăng EPDM")));
+      if(P.open>4) [x0+dx*0.35,x0+dx*0.65].forEach(xh=>push(
+        mkMember([xh,Yw0+70,lidZ0-40],
+          [xh,Yw0+70+(Yw1-Yw0)*0.55*Math.cos(ang),lidZ0-40+(Yw1-Yw0)*0.55*Math.sin(ang)+60],
+          22,22,"lidf",`Ty hơi N${i+1} — 150 N`,"Giữ nắp ở góc mở, hạ êm")));
+      parts.forEach(o=>push(rotX(o,Yw0,lidZ0,a)));
+    }else if(P.lid==="slide"){
+      const lvl=i*26;
+      parts.forEach(o=>{
+        const q={...o,V:o.V.map(([x,y,z])=>[x,y,z+lvl]),ctr:[o.ctr[0],o.ctr[1],o.ctr[2]+lvl]};
+        push(movX(q,-sh));
+      });
+      [Yw0,Yw1].forEach(y=>push(mkMember([0,y,zAt(y)+70+i*26],[WL,y,zAt(y)+70+i*26],46,22,"lidf",
+        `Ray trượt tầng ${i+1} — U inox 46×22`,"Bánh xe nylon Ø25 · 4 bánh mỗi tấm")));
+      [x0+dx*0.15,x0+dx*0.85].forEach(xw=>[Yw0,Yw1].forEach(y=>push(
+        movX(mkTube([xw,y,zAt(y)+82+lvl],13,26,1,10,"lidf",
+          `Bánh xe nylon Ø25 — N${i+1}`,"Trượt trên ray U"),-sh))));
+    }else{
+      parts.forEach(o=>push(rotX(o,Yw0,lidZ0,a*0.35)));
+      if(i===0) [x0+dx*0.3,x0+dx*0.7].forEach(xh=>push(
+        mkBox([xh,(Yw0+Yw1)/2,lidZ0+30],120,26,26,"lidf","Tay nắm inox","2 tay nắm mỗi tấm để nhấc")));
+    }
+    lids.push({x0,x1,act,k});
+    D.push({txt:`N${i+1}${act?(P.open>3?` · mở ${Math.round(P.open*k)}%`:""):" · đóng"}`,
+      at:[(x0+x1)/2, (Yw0+Yw1)/2, lidZ0+140+(P.lid==="hinge"?a*260:0)+(P.lid==="slide"?i*26:0)]});
+    /* thanh chặn ngang tại mối nối nắp */
+    if(i>0) push(mkMember([x0,Yw0,lidZ0-34],[x0,Yw1,lidZ1-34],40,40,"bem",
+      `Thanh đỡ mối nối nắp ${f0(x0)}`,"40×40×2,0 · mặt tựa gioăng giữa 2 nắp"));
+  }
+
+  /* ---- khe hút cục bộ ---- */
+  if(P.slot){
+    push(mkTube([WL/2,Yw1-60,zAt(Yw1)-90],55,WL,0,14,"slot",
+      "Ống khe hút cục bộ D110","Khe 15 × 800 mm cách 500 · van chỉnh · chỉ mở khi vào lối đi"));
+    push(mkTube([WL+240,Yw1-60,zAt(Yw1)-90],55,480,1,14,"slot",
+      "Nhánh nối về ống góp D110","Có van bướm điều chỉnh"));
+  }
+
+  /* ---- phụ kiện chụp ---- */
+  const nozY=[Yw0/2,(Yw1+LY)/2];
+  nozY.forEach((y,i)=>{
+    const x=LX*(i?0.72:0.28);
+    push(mkTube([x,y,rz(y)],55,320,2,14,"acc",`Cổ chụp hút D110 #${i+1}`,
+      `Tọa độ X=${f0(x)} Y=${f0(y)} · lưới tách bọt`));
+    push(mkTube([x,y,rz(y)-14],110,34,2,14,"acc","Mặt bích inox","Gioăng EPDM · 4 bulong M8"));
+  });
+  [[LX*0.12,Yw0/2],[LX*0.88,(Yw1+LY)/2]].forEach(([x,y])=>
+    push(mkBox([x,y,rz(y)+14],600,600,26,"acc","Nắp thăm 600×600","Gioăng liền vòng · CT-05")));
+  [[LX*0.45,Yw0/2],[LX*0.55,(Yw1+LY)/2]].forEach(([x,y])=>
+    push(mkBox([x,y,rz(y)+10],500,500,20,"acc","Nắp xả áp 500×500","Tự nâng ở +58 Pa")));
+  [0,LX].forEach(x=>[Yw0/2,(Yw1+LY)/2].forEach(y=>
+    push(mkBox([x,y,zAt(y)*0.45],120,400,40,"acc","Cửa gió bù 400×120","Lưới inox + chắn mưa"))));
+
+  /* ---- người vận hành ---- */
+  const px=Math.min(WL*0.32,WL-400), py=(Yw0+Yw1)/2;
+  push(mkTube([px,py,300],150,600,2,12,"man","Người vận hành (tham chiếu)","Cao 1.700 mm · đứng trên lối đi"));
+  push(mkTube([px,py,900],190,600,2,12,"man","Người vận hành (tham chiếu)","Thân · vai cao 1.450 mm"));
+  push(mkTube([px,py,1560],110,220,2,12,"man","Người vận hành (tham chiếu)","Đầu · đỉnh 1.700 mm"));
+
+  /* ---- kích thước ---- */
+  const G=Math.max(LX,LY)*0.10;
+  const dm=(a,b,t,o)=>D.push({a,b,t,o:o||[0,0,0]});
+  dm([0,0,0],[LX,0,0],`${f0(LX)} — trục cột`,[0,-G*1.9,-560]);
+  dm([LX,0,0],[LX,LY,0],`${f0(LY)}`,[G*1.5,0,-560]);
+  dm([LX,Yw0,0],[LX,Yw1,0],`${f0(P.WW)} lối đi`,[G*0.62,0,-300]);
+  dm([0,Yw0,0],[WL,Yw0,0],`${f0(WL)} — chiều dài lối đi`,[0,-G*0.75,-300]);
+  dm([0,0,0],[0,0,Z0],`${f0(Z0)}`,[-G*0.85,-G*0.85,0]);
+  dm([LX,LY,0],[LX,LY,Z1],`${f0(Z1)}`,[G*0.85,G*0.85,0]);
+  dm([0,Yw0,0],[0,Yw0,zAt(Yw0)],`${f0(zAt(Yw0))} vách ngăn`,[-G*0.95,0,0]);
+  D.push({txt:`ĐỘ DỐC MÁI  i = ${((Z0-Z1)/LY*100).toFixed(1)}%`,at:[LX/2,LY/2,Z0+G*1.5]});
+  D.push({txt:`LỐI ĐI VẬN HÀNH · ${n} NẮP × ${f0(dx)} mm`,at:[WL/2,(Yw0+Yw1)/2,Z0+G*0.95]});
+
+  /* ---- thống kê ---- */
+  const KG={"50":2.93,"40":2.30,"30":1.32};
+  const Lcol=yLines.reduce((s,y)=>s+colX.length*zAt(y),0);
+  const Lbem=4*LX + 2*LX + (n-1)*P.WW;
+  const rafL=(ya,yb)=>Math.hypot(yb-ya,zAt(yb)-zAt(ya));
+  const Lraf=(rafX.length)*(rafL(0,Yw0)+rafL(Yw1,LY)) +
+             rafX.filter(x=>x>=WL-1).length*rafL(Yw0,Yw1);
+  const Lpur=2*LX;
+  const Llid=n*2*(dx+P.WW);
+  const wAl=(Lcol*KG["50"]+Lbem*KG["40"]+Lraf*KG["40"]+(Lpur+Llid)*KG["30"])/1000;
+  const aRoof=(LX*Yw0+LX*(LY-Yw1)+(LX-WL)*P.WW)/1e6;
+  const aWall=(2*LX*(Z0+Z1)/2 + 2*LY*(Z0+Z1)/2)/1e6;
+  const aPart=(LX*zAt(Yw0)+LX*zAt(Yw1))/1e6;
+  const aLid=n*dx*P.WW/1e6;
+  const aPC=aRoof+aWall+aPart+aLid;
+  const vol=(LX*LY*(Z0+Z1)/2)/1e9;
+  const Qmin=Math.round(vol*12/10)*10;
+  let nOpen=0; for(let i=0;i<n;i++) if(fac(i)>0.01) nOpen++;
+  const openArea=Math.max(1,nOpen)*dx*P.WW/1e6;
+  const vFace=P.open>2? (Qmin*1.6/3600)/openArea : 0;
+
+  const cut=[
+    [`Cột 50×50×2,0`, colX.length*yLines.length, `${f0(zAt(0))}÷${f0(zAt(LY))}`],
+    [`Dầm biên dọc 50×50×2,0`, 4, f0(LX)],
+    [`Ray đỡ nắp 40×40×2,0`, 2, f0(LX)],
+    [`Dầm mái 40×40×2,0 — khoang biên`, rafX.length*2, f0(rafL(0,Yw0))],
+    [`Dầm mái 40×40×2,0 — khoang giữa`, rafX.filter(x=>x>=WL-1).length, f0(rafL(Yw0,Yw1))],
+    [`Nẹp đỡ tấm 30×30×1,5`, 2, f0(LX)],
+    [`Khung nắp 30×30×1,5`, n*4, `${f0(dx)} / ${f0(P.WW)}`],
+    [`Thanh đỡ mối nối nắp 40×40×2,0`, n-1, f0(P.WW)],
+  ];
+  const acc=[["Ke góc, bản mã, bulong M8","lô"],
+    ["Bản đế 150×150×5 + bulong nở M10", colX.length*yLines.length],
+    ["Nắp thăm 600×600",2],["Nắp xả áp 500×500",2],["Cửa gió bù 400×120",4],
+    ["Cổ chụp hút D110",2]];
+  if(P.lid==="hinge") acc.push(["Bản lề inox nâng",n*2],["Ty hơi 150 N",n*2],
+    ["Chốt gài nhanh (toggle latch)",n*2],["Gioăng EPDM 20×5 quanh nắp",`${f1(Llid/1000)} m`]);
+  if(P.lid==="slide") acc.push(["Ray trượt U inox 46×26",2],["Bánh xe nylon Ø25",n*4],
+    ["Gioăng bàn chải chống bụi",`${f1(Llid/1000)} m`]);
+  if(P.lid==="lift") acc.push(["Tay nắm inox",n*2],["Chốt gài nhanh",n*2],
+    ["Gioăng EPDM 20×5",`${f1(Llid/1000)} m`]);
+  if(P.slot) acc.push(["Ống khe hút D110 + van bướm",1]);
+
+  return {M,D,C:[LX/2,LY/2,Z0/2],R:Math.hypot(LX,LY)/2,
+    LX,LY,Yw0,Yw1,WL,n,dx,zAt,cut,acc,wAl,aPC,aLid,vol,Qmin,openArea,vFace,nOpen,n,
+    hClear:zAt(Yw0),lidW:2*(dx+P.WW)/1000*1.32+dx*P.WW/1e6*6};
+}
+
+/* ================= vẽ ================= */
+const cv=$("cv"), ctx=cv.getContext("2d");
+let S=build();
+let yaw=-0.62, pit=0.52, zoom=.78, pan=[0,0], dist=0, focal=1400;
+let expl=0, opac=.30, DPR=1, W=0, H=0, hover=null, light=false;
+
+function fit(){
+  DPR=Math.min(devicePixelRatio||1,2);
+  W=cv.clientWidth; H=cv.clientHeight;
+  cv.width=W*DPR; cv.height=H*DPR;
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  dist=S.R*3.1;
+}
+function proj(p){
+  let x=p[0]-S.C[0],y=p[1]-S.C[1],z=p[2]-S.C[2];
+  const ca=Math.cos(yaw),sa=Math.sin(yaw);
+  let x1=x*ca-y*sa,y1=x*sa+y*ca;
+  const cb=Math.cos(pit),sb=Math.sin(pit);
+  let y2=y1*cb-z*sb,z2=y1*sb+z*cb;
+  const d=dist+y2,f=focal/Math.max(d,1)*zoom*(Math.min(W,H)/700);
+  return [W/2+x1*f+pan[0],H/2-z2*f+pan[1],d];
+}
+function shift(o){const k=LEV[o.layer];return (k===undefined||!expl)?[0,0,0]:[0,0,k*expl];}
+function tint(hex,k){
+  const n=parseInt(hex.slice(1),16);
+  return `rgb(${Math.min(255,(n>>16)*k)|0},${Math.min(255,((n>>8)&255)*k)|0},${Math.min(255,(n&255)*k)|0})`;
+}
+function render(){
+  ctx.clearRect(0,0,W,H);
+  if(light){ctx.fillStyle="#fff";ctx.fillRect(0,0,W,H);}
+  const faces=[];
+  for(const o of S.M){
+    if(!LON[o.layer]) continue;
+    const off=shift(o), Pp=o.V.map(v=>proj(add(v,off)));
+    for(const f of o.F){
+      const pts=f.map(i=>Pp[i]);
+      if(pts.some(q=>q[2]<40)) continue;
+      const v3=f.map(i=>add(o.V[i],off));
+      faces.push({pts,n:nrm(crs(sub(v3[1],v3[0]),sub(v3[2],v3[0]))),
+        d:pts.reduce((a,q)=>a+q[2],0)/pts.length,o});
+    }
+  }
+  faces.sort((a,b)=>b.d-a.d);
+  const L=nrm([-.45,-.72,.75]);
+  for(const f of faces){
+    const col=LAYERS.find(l=>l.id===f.o.layer).c;
+    const sh=.42+.58*Math.max(0,Math.abs(dot(f.n,L)));
+    const gl=f.o===hover, ly=f.o.layer;
+    ctx.beginPath(); ctx.moveTo(f.pts[0][0],f.pts[0][1]);
+    for(let i=1;i<f.pts.length;i++) ctx.lineTo(f.pts[i][0],f.pts[i][1]);
+    ctx.closePath();
+    if(ly==="pan"||ly==="part"||ly==="lid"){
+      ctx.fillStyle=light?"#cfe4ef":tint(col,sh);
+      ctx.globalAlpha=(light?opac*.6:opac)*(gl?1.7:1)*(ly==="lid"?1.5:1);
+      ctx.fill(); ctx.globalAlpha=1;
+      ctx.strokeStyle=light?"rgba(40,90,115,.7)":"rgba(150,215,235,.55)";
+      ctx.lineWidth=ly==="lid"?1.1:.8; ctx.stroke();
+    }else if(ly==="tnk"||ly==="walk"){
+      ctx.fillStyle=light?"#dfe4e9":tint(col,sh*.85);
+      ctx.globalAlpha=light?.8:.66; ctx.fill(); ctx.globalAlpha=1;
+    }else if(ly==="man"){
+      ctx.fillStyle=light?"#bcd8cd":tint(col,sh); ctx.globalAlpha=.72; ctx.fill(); ctx.globalAlpha=1;
+    }else{
+      ctx.fillStyle=gl?"#5fd0d8":tint(col,light?sh*.92:sh); ctx.fill();
+      ctx.strokeStyle=gl?"#bff0f4":(light?"rgba(20,32,44,.95)":"rgba(10,20,32,.72)");
+      ctx.lineWidth=gl?1.4:(light?.85:.7); ctx.stroke();
+    }
+  }
+  if(LON.dim) drawDims();
+  if(LON.lbl) drawLabels();
+  drawAxis();
+}
+function drawDims(){
+  ctx.font="600 11px var(--mono),monospace"; ctx.textAlign="center"; ctx.textBaseline="middle";
+  for(const d of S.D){
+    if(d.txt){
+      const p=proj(d.at); if(p[2]<40) continue;
+      const w=ctx.measureText(d.txt).width+12;
+      ctx.fillStyle=light?"#ffffffe6":"#0b1622cc"; ctx.fillRect(p[0]-w/2,p[1]-9,w,18);
+      ctx.strokeStyle=light?"#b98a3f":"#3d5a76"; ctx.lineWidth=.8;
+      ctx.strokeRect(p[0]-w/2,p[1]-9,w,18);
+      ctx.fillStyle=light?"#8a5209":"#e0a33c"; ctx.fillText(d.txt,p[0],p[1]); continue;
+    }
+    const a=proj(add(d.a,d.o)),b=proj(add(d.b,d.o)),ea=proj(d.a),eb=proj(d.b);
+    if(a[2]<40||b[2]<40) continue;
+    ctx.strokeStyle=light?"rgba(150,90,10,.45)":"rgba(224,163,60,.32)"; ctx.lineWidth=.8;
+    ctx.beginPath(); ctx.moveTo(ea[0],ea[1]); ctx.lineTo(a[0],a[1]);
+    ctx.moveTo(eb[0],eb[1]); ctx.lineTo(b[0],b[1]); ctx.stroke();
+    ctx.strokeStyle=light?"#a8620c":"#e0a33c"; ctx.lineWidth=1.05;
+    ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke();
+    const ang=Math.atan2(b[1]-a[1],b[0]-a[0]);
+    for(const [p,s] of [[a,1],[b,-1]]){
+      ctx.beginPath();
+      ctx.moveTo(p[0]+s*7*Math.cos(ang-.42),p[1]+s*7*Math.sin(ang-.42));
+      ctx.lineTo(p[0],p[1]);
+      ctx.lineTo(p[0]+s*7*Math.cos(ang+.42),p[1]+s*7*Math.sin(ang+.42));
+      ctx.stroke();
+    }
+    const m=[(a[0]+b[0])/2,(a[1]+b[1])/2],w=ctx.measureText(d.t).width+9;
+    ctx.fillStyle=light?"#ffffffee":"#0b1622e6"; ctx.fillRect(m[0]-w/2,m[1]-8,w,16);
+    ctx.fillStyle=light?"#7d4b06":"#f0c274"; ctx.fillText(d.t,m[0],m[1]);
+  }
+}
+function drawLabels(){
+  ctx.font="10.5px var(--mono),monospace"; ctx.textBaseline="middle";
+  const seen=new Set(),out=[];
+  for(const o of S.M){
+    if(!LON[o.layer]||o.layer==="tnk") continue;
+    const k=o.name.replace(/[#N]\d+/g,"");
+    if(seen.has(k)) continue; seen.add(k);
+    const p=proj(add(o.ctr,shift(o))); if(p[2]<40) continue;
+    out.push({p,t:o.name});
+  }
+  out.sort((a,b)=>a.p[1]-b.p[1]);
+  const used=[];
+  for(const q of out){
+    let y=q.p[1];
+    while(used.some(u=>Math.abs(u-y)<15)) y+=15;
+    used.push(y);
+    const x=q.p[0]+26;
+    ctx.strokeStyle=light?"rgba(12,80,100,.5)":"rgba(95,208,216,.42)"; ctx.lineWidth=.8;
+    ctx.beginPath(); ctx.moveTo(q.p[0],q.p[1]); ctx.lineTo(x-4,y); ctx.stroke();
+    ctx.fillStyle=light?"#0b5a72":"#5fd0d8"; ctx.textAlign="left"; ctx.fillText(q.t,x,y);
+    ctx.beginPath(); ctx.arc(q.p[0],q.p[1],2.1,0,7); ctx.fill();
+  }
+}
+function drawAxis(){
+  const o=[72,H-100],s=42;
+  const ca=Math.cos(yaw),sa=Math.sin(yaw),cb=Math.cos(pit),sb=Math.sin(pit);
+  ctx.font="600 10px var(--mono),monospace"; ctx.textAlign="center"; ctx.textBaseline="middle";
+  for(const [x,y,z,n,c] of [[1,0,0,"X",'#e0654a'],[0,1,0,"Y",'#6fbf6f'],[0,0,1,"Z",'#5fa8e0']]){
+    const x1=x*ca-y*sa,y1=x*sa+y*ca,y2=y1*cb-z*sb,z2=y1*sb+z*cb;
+    const px=o[0]+x1*s,py=o[1]-z2*s;
+    ctx.strokeStyle=c; ctx.lineWidth=1.4;
+    ctx.beginPath(); ctx.moveTo(o[0],o[1]); ctx.lineTo(px,py); ctx.stroke();
+    ctx.fillStyle=c; ctx.fillText(n,px+(px-o[0])*.16,py+(py-o[1])*.16);
+  }
+}
+
+/* ================= tương tác ================= */
+let drag=null;
+cv.addEventListener("pointerdown",e=>{cv.setPointerCapture(e.pointerId);
+  cv.classList.add("drag"); drag={x:e.clientX,y:e.clientY,b:e.button,moved:0};});
+cv.addEventListener("pointermove",e=>{
+  if(!drag){pick(e);return;}
+  const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+  drag.moved+=Math.abs(dx)+Math.abs(dy);
+  if(drag.b===2||e.shiftKey){pan[0]+=dx;pan[1]+=dy;}
+  else{yaw+=dx*.0072; pit=Math.max(-.32,Math.min(1.556,pit-dy*.0072));}
+  drag.x=e.clientX; drag.y=e.clientY; render();});
+cv.addEventListener("pointerup",e=>{if(drag&&drag.moved<4)pick(e,true);
+  drag=null; cv.classList.remove("drag");});
+cv.addEventListener("contextmenu",e=>e.preventDefault());
+cv.addEventListener("wheel",e=>{e.preventDefault();
+  zoom=Math.max(.2,Math.min(9,zoom*Math.exp(-e.deltaY*.0011))); render();},{passive:false});
+function pick(e,click){
+  const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+  let best=null,bd=1e18;
+  for(const o of S.M){
+    if(!LON[o.layer]||o.layer==="tnk") continue;
+    const off=shift(o),Pp=o.V.map(v=>proj(add(v,off)));
+    for(const f of o.F){
+      const pts=f.map(i=>Pp[i]);
+      if(pts.some(q=>q[2]<40)) continue;
+      if(inPoly(mx,my,pts)){const d=pts.reduce((a,q)=>a+q[2],0)/pts.length;
+        if(d<bd){bd=d;best=o;}}
+    }
+  }
+  const el=$("pick");
+  if(best!==hover||click){
+    hover=best;
+    if(best){el.textContent=`${best.name}  ·  ${best.spec}`; el.style.opacity=1;}
+    else el.style.opacity=0;
+    render();
+  }
+}
+function inPoly(x,y,p){
+  let c=false;
+  for(let i=0,j=p.length-1;i<p.length;j=i++)
+    if((p[i][1]>y)!==(p[j][1]>y)&&x<(p[j][0]-p[i][0])*(y-p[i][1])/(p[j][1]-p[i][1])+p[i][0]) c=!c;
+  return c;
+}
+
+/* ================= giao diện ================= */
+const lay=$("layers");
+LAYERS.forEach(l=>{
+  const b=document.createElement("label"); b.className="ck";
+  b.innerHTML=`<input type="checkbox" ${l.on?"checked":""}>
+    <span class="sw" style="background:${l.c}"></span><span>${l.n}</span>`;
+  b.querySelector("input").onchange=ev=>{LON[l.id]=ev.target.checked;render();};
+  lay.appendChild(b);
+});
+const VIEWS={iso:[-0.62,0.52],front:[0,0.02],side:[-1.5708,0.02],top:[0,1.5590]};
+document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{[yaw,pit]=VIEWS[b.dataset.v];render();});
+["iL","iW","iT","iWW","iWL","iWO","iZ0","iZ1","iN"].forEach(id=>$(id).addEventListener("input",apply));
+["iLid"].forEach(id=>$(id).addEventListener("change",apply));
+["iMode","iSlot"].forEach(id=>$(id).addEventListener("change",apply));
+$("iOpen").addEventListener("input",e=>{P.open=+e.target.value;
+  $("opv").textContent=P.open+" %"; S=build(); warn(); stats(); render();});
+$("iExp").oninput=e=>{expl=+e.target.value; $("exv").textContent=expl+" mm"; render();};
+$("iOp").oninput=e=>{opac=+e.target.value/100; $("tpv").textContent=e.target.value+" %"; render();};
+$("bRst").onclick=()=>{yaw=-0.62;pit=0.52;zoom=.78;pan=[0,0];expl=0;
+  $("iExp").value=0;$("exv").textContent="0 mm";render();};
+function buildPick(){
+  const box=$("lidPick"), n=Math.max(2,Math.min(10,+$("iN").value||4));
+  box.style.display = ($("iMode").value==="pick")?"block":"none";
+  if(box.dataset.n!=String(n)){
+    box.innerHTML="";
+    for(let i=0;i<n;i++){
+      const l=document.createElement("label"); l.className="ck";
+      l.innerHTML=`<input type="checkbox" ${i===0?"checked":""}><span>Nắp N${i+1}</span>`;
+      l.querySelector("input").onchange=ev=>{P.pick[i]=ev.target.checked; apply();};
+      box.appendChild(l);
+      if(P.pick[i]===undefined) P.pick[i]=(i===0);
+    }
+    box.dataset.n=String(n);
+  }
+}
+function apply(){
+  P.L=+$("iL").value||10000; P.W=+$("iW").value||4000; P.T=+$("iT").value||200;
+  P.WW=+$("iWW").value||1000; P.WL=+$("iWL").value||5100; P.WO=+$("iWO").value||0;
+  P.Z0=+$("iZ0").value||1340; P.Z1=+$("iZ1").value||1000;
+  P.lid=$("iLid").value; P.N=Math.max(2,Math.min(10,+$("iN").value||4));
+  P.mode=$("iMode").value; buildPick(); P.slot=$("iSlot").checked;
+  S=build(); hover=null; fit(); warn(); stats(); render();
+}
+function warn(){
+  const el=$("warn"), m=[];
+  let bad=false;
+  m.push(`Vách ngăn cao <b>${f0(S.hClear)} mm</b> — làm lan can lối đi.`);
+  m.push(`${S.n} nắp × <b>${f0(S.dx)} mm</b> · mỗi nắp ≈ <b>${f1(S.lidW)} kg</b>.`);
+  if(S.lidW>25){bad=true; m.push(`Nắp <b>quá nặng để nhấc tay</b> — bắt buộc dùng ty hơi, hoặc tăng số tấm.`);}
+  if(P.lid==="slide") m.push(`Kiểu trượt: xếp chồng ${S.n} tầng, dày ≈ <b>${f0(S.n*26)} mm</b> khi mở hết.`);
+  if(P.open>2){
+    m.push(`Đang mở <b>${S.nOpen}/${S.n} tấm</b> · diện tích <b>${S.openArea.toFixed(2)} m²</b> ·
+      vận tốc cửa <b>${S.vFace.toFixed(2)} m/s</b>.`);
+    if(S.vFace<0.25){bad=true;
+      m.push(`Vận tốc <b>&lt; 0,25 m/s</b> — khí sẽ thoát ra lối đi. Phải bật chế độ lối đi (quạt 100%) và mở từng tấm.`);}
+  }
+  el.className=bad?"":"ok"; el.innerHTML=m.join("<br>");
+}
+function stats(){
+  const cut=S.cut.map(([n,q,l])=>`<tr><td>${n}</td><td class="v">${q} × ${l}</td></tr>`).join("");
+  const acc=S.acc.map(([n,q])=>`<tr><td>${n}</td><td class="v">${q}</td></tr>`).join("");
+  $("stat").innerHTML=
+   `<h3>Cắt thanh inox</h3><table>${cut}
+    <tr><td><b>Khối lượng inox</b></td><td class="v"><b>${f1(S.wAl)} kg</b></td></tr></table>
+    <h3>Tấm PC 5 mm</h3><table>
+    <tr><td>Tổng diện tích</td><td class="v">${S.aPC.toFixed(1)} m²</td></tr>
+    <tr><td>Riêng phần nắp</td><td class="v">${S.aLid.toFixed(2)} m²</td></tr></table>
+    <h3>Phụ kiện</h3><table>${acc}</table>
+    <h3>Thông số khí</h3><table>
+    <tr><td>Thể tích khoang</td><td class="v">${S.vol.toFixed(1)} m³</td></tr>
+    <tr><td>Q hút tối thiểu 12 lần/h</td><td class="v">${f0(S.Qmin)} m³/h</td></tr>
+    <tr><td>Q chế độ lối đi (×1,6)</td><td class="v">${f0(S.Qmin*1.6)} m³/h</td></tr>
+    <tr><td>Cao vách ngăn</td><td class="v">${f0(S.hClear)} mm</td></tr></table>`;
+  $("mmtag").textContent=`${f0(P.L)} × ${f0(P.W)} · lối đi ${f0(P.WW)} × ${f0(Math.min(P.WL,S.LX))}`;
+  $("tag").innerHTML=`Chụp A Rev.B · lối đi vận hành<br>Đơn vị: mm · Gốc: trục cột góc`;
+}
+
+/* ================= xuất ================= */
+function grab(sc,onWhite){
+  const ow=cv.width,oh=cv.height,oD=DPR,oL=light;
+  light=!!onWhite; DPR=sc*(devicePixelRatio||1);
+  cv.width=W*DPR; cv.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.fillStyle=onWhite?"#fff":"#0b1622"; ctx.fillRect(0,0,W,H);
+  render();
+  const u=cv.toDataURL("image/png");
+  light=oL; DPR=oD; cv.width=ow; cv.height=oh;
+  ctx.setTransform(DPR,0,0,DPR,0,0); render();
+  return u;
+}
+$("bPng").onclick=()=>{const a=document.createElement("a");
+  a.download="SVWS-OCS-2026-RevB_Chup-co-loi-di.png"; a.href=grab(3,false); a.click();};
+$("bPdf").onclick=()=>{
+  const img=grab(3,true), d=new Date(), pad=n=>String(n).padStart(2,"0");
+  const cut=S.cut.map(([n,q,l])=>`<tr><td>${n}</td><td class="v">${q}</td><td class="v">${l}</td></tr>`).join("");
+  const acc=S.acc.map(([n,q])=>`<tr><td>${n}</td><td class="v">${q}</td></tr>`).join("");
+  const kieu={hinge:"Bản lề mở lên có ty hơi",slide:"Trượt xếp chồng nhiều tầng",lift:"Tháo rời từng tấm"}[P.lid];
+  const w=window.open("","_blank");
+  if(!w){alert("Trình duyệt đã chặn cửa sổ in. Cho phép pop-up rồi thử lại.");return;}
+  w.document.write(`<!doctype html><meta charset="utf-8">
+<title>SVWS-OCS-2026 Rev.B — Chụp thu gom khí có lối đi</title>
+<style>
+@page{size:A3 landscape;margin:8mm}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,Arial,sans-serif;color:#14161a;background:#e9edf1}
+.sheet{width:404mm;height:281mm;background:#fff;margin:10px auto;padding:5mm;
+  border:.6mm solid #14161a;display:flex;flex-direction:column}
+.hd{display:flex;justify-content:space-between;align-items:baseline;
+  border-bottom:.35mm solid #14161a;padding-bottom:2mm;margin-bottom:3mm}
+.hd h1{font-size:15pt;font-weight:600}
+.hd .r{font-family:ui-monospace,Consolas,monospace;font-size:8.5pt;color:#4a4f57}
+.body{flex:1;display:flex;gap:4mm;min-height:0}
+.img{flex:1;border:.25mm solid #c8ccd2;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.img img{max-width:100%;max-height:100%;object-fit:contain}
+.info{width:92mm;flex:none;font-size:8pt}
+.info h2{font-family:ui-monospace,Consolas,monospace;font-size:7.5pt;letter-spacing:.12em;
+  text-transform:uppercase;color:#8a8f98;border-bottom:.25mm solid #14161a;padding-bottom:1mm;margin:0 0 2mm}
+.info h2:not(:first-child){margin-top:3.5mm}
+table{width:100%;border-collapse:collapse}
+td,th{border-bottom:.2mm solid #dfe3e8;padding:.9mm 1.4mm;text-align:left;vertical-align:top}
+th{background:#eef1f4;font-size:7.5pt}
+td.v,th.v{text-align:right;font-family:ui-monospace,Consolas,monospace}
+.info p{line-height:1.45;color:#4a4f57;margin-top:1.5mm}
+.warn{border-left:.7mm solid #b3520d;background:#fdf6ef;padding:1.6mm 2.2mm;font-size:7.5pt;line-height:1.4;margin-top:2mm}
+.tb{display:grid;grid-template-columns:1fr 92mm;border:.5mm solid #14161a;margin-top:3mm;font-size:7.5pt}
+.tb>div{padding:1.6mm 2.2mm}
+.tb>div:first-child{border-right:.25mm solid #c8ccd2}
+.tb .l{display:block;font-size:6pt;letter-spacing:.1em;color:#8a8f98;text-transform:uppercase}
+.tb .b{font-family:ui-monospace,Consolas,monospace;font-size:9pt}
+@media print{body{background:#fff}.sheet{margin:0;border:none;width:auto;height:auto}}
+</style>
+<div class="sheet">
+  <div class="hd"><h1>Chụp thu gom khí có lối đi vận hành — ${f0(P.L)} × ${f0(P.W)} mm</h1>
+  <div class="r">SVWS-OCS-2026 · Rev. B · ${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} · mm</div></div>
+  <div class="body">
+    <div class="img"><img src="${img}"></div>
+    <div class="info">
+      <h2>Bảng cắt thanh</h2>
+      <table><tr><th>Cấu kiện</th><th class="v">SL</th><th class="v">Dài (mm)</th></tr>${cut}</table>
+      <p><b>Khối lượng inox ≈ ${f1(S.wAl)} kg</b> · tấm PC 5 mm ${S.aPC.toFixed(1)} m²</p>
+      <h2>Phụ kiện — nắp kiểu: ${kieu}</h2>
+      <table>${acc}</table>
+      <h2>Thông số khí</h2>
+      <table>
+      <tr><td>Thể tích khoang</td><td class="v">${S.vol.toFixed(1)} m³</td></tr>
+      <tr><td>Q vận hành thường</td><td class="v">${f0(S.Qmin)} m³/h</td></tr>
+      <tr><td>Q chế độ lối đi</td><td class="v">${f0(S.Qmin*1.6)} m³/h</td></tr>
+      <tr><td>Cao vách ngăn (lan can)</td><td class="v">${f0(S.hClear)} mm</td></tr>
+      </table>
+      <div class="warn"><b>Quy trình vào lối đi:</b> bấm nút "Chế độ lối đi" → quạt chạy 100%,
+      chờ 3 phút → đo H₂S/O₂/LEL bằng máy đeo người → mở <b>từng nắp một</b>, đóng lại ngay sau khi qua.
+      Cấm mở đồng thời quá 1 nắp. Cấm mở nắp khi quạt hút không chạy.</div>
+    </div>
+  </div>
+  <div class="tb">
+    <div><span class="l">Công ty TNHH GPKT Sóng Việt — SVWS</span>
+      <span class="b">Hệ thu gom khí mùi — chụp A có lối đi vận hành giữa bể</span></div>
+    <div><span class="l">Số hiệu</span><span class="b">BV-3D-A-RevB · Hình chiếu trục đo, không theo tỷ lệ</span></div>
+  </div>
+</div>`);
+  w.document.close();
+  const go=()=>{w.focus();w.print();};
+  const im=w.document.querySelector("img");
+  if(im&&!im.complete) im.onload=()=>setTimeout(go,120); else setTimeout(go,300);
+};
+addEventListener("resize",()=>{fit();render();});
+apply();
+</script>
